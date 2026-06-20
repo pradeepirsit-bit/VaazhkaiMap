@@ -208,7 +208,7 @@
         }
 
         /* ════════════════════════════════════════════════════════════════
-                   INSTAGRAM-STYLE TIMELINE FEED
+                   INSTAGRAM-STYLE FEED (unchanged)
                    ════════════════════════════════════════════════════════════════ */
 
         .feed-container {
@@ -217,8 +217,6 @@
             gap: var(--feed-gap);
             padding-bottom: 20px;
         }
-
-        /* ── Feed Card ── */
         .feed-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -232,8 +230,6 @@
             box-shadow: var(--shadow-hover);
             transform: translateY(-2px);
         }
-
-        /* ── Photo Frame ── */
         .feed-card .photo-frame {
             position: relative;
             width: 100%;
@@ -276,8 +272,6 @@
         .feed-card:hover .photo-frame .photo-emoji {
             transform: scale(1.04);
         }
-
-        /* Photo frame decorative border */
         .feed-card .photo-frame::after {
             content: '';
             position: absolute;
@@ -287,8 +281,6 @@
             pointer-events: none;
             z-index: 3;
         }
-
-        /* Category badge on photo */
         .feed-card .photo-frame .photo-badge {
             position: absolute;
             top: 14px;
@@ -309,8 +301,6 @@
             pointer-events: none;
             z-index: 4;
         }
-
-        /* ── Photo Add Button (overlay on emoji area) ── */
         .feed-card .photo-frame .photo-add-btn {
             position: absolute;
             inset: 0;
@@ -400,19 +390,13 @@
             background: rgba(200, 50, 50, 0.8);
             transform: scale(1.1);
         }
-
-        /* Hidden file input */
         .photo-file-input {
             display: none;
         }
-
-        /* ── Card Body ── */
         .feed-card .card-body {
             padding: 16px 20px 18px;
             transition: var(--transition);
         }
-
-        /* Emotional tagline */
         .feed-card .emotional-tagline {
             display: flex;
             align-items: center;
@@ -479,8 +463,6 @@
             border-radius: 12px;
             white-space: nowrap;
         }
-
-        /* ── Expanded Details ── */
         .feed-card .card-details {
             max-height: 0;
             overflow: hidden;
@@ -495,7 +477,6 @@
             opacity: 1;
             padding: 0 20px 18px;
         }
-
         .feed-card .card-details .detail-row {
             display: flex;
             align-items: flex-start;
@@ -528,8 +509,6 @@
             font-style: italic;
             color: var(--secondary);
         }
-
-        /* Expand indicator */
         .feed-card .expand-hint {
             display: flex;
             justify-content: center;
@@ -552,8 +531,6 @@
         .feed-card:hover .expand-hint {
             opacity: 1;
         }
-
-        /* ── Card actions ── */
         .feed-card .card-actions {
             display: flex;
             gap: 8px;
@@ -584,8 +561,6 @@
             background: #fde8e8;
             color: #c0392b;
         }
-
-        /* ── Empty state ── */
         .feed-empty {
             text-align: center;
             padding: 80px 20px;
@@ -608,7 +583,6 @@
             font-size: 0.95rem;
         }
 
-        /* ── Gradient backgrounds per emotion ── */
         .photo-bg-happy {
             background: linear-gradient(145deg, #fce4b8, #f8d5a3);
         }
@@ -634,7 +608,6 @@
             background: linear-gradient(145deg, #e8e0d6, #dcd2c8);
         }
 
-        /* ── Responsive: grid on larger screens ── */
         @media (min-width: 640px) {
             .feed-container {
                 display: grid;
@@ -650,8 +623,6 @@
                 grid-template-columns: 1fr 1fr 1fr;
             }
         }
-
-        /* ── Mobile adjustments ── */
         @media (max-width: 480px) {
             #app {
                 padding: 10px 10px 30px;
@@ -716,7 +687,151 @@
             }
         }
 
-        /* ── Heatmap ── */
+        /* ════════════════════════════════════════════════════════════════
+                   MASTER TIMELINE (new)
+                   ════════════════════════════════════════════════════════════════ */
+
+        .master-timeline {
+            position: relative;
+            padding-left: 32px;
+        }
+        .master-timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--primary-light), var(--primary), var(--accent-light));
+            border-radius: 4px;
+        }
+        .master-timeline .tl-node {
+            position: relative;
+            margin-bottom: 28px;
+            padding-left: 28px;
+        }
+        .master-timeline .tl-node::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid var(--bg);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            z-index: 2;
+        }
+        .master-timeline .tl-node .tl-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-left: 4px solid var(--primary);
+        }
+        .master-timeline .tl-node .tl-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .master-timeline .tl-node .tl-card .tl-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 8px 14px;
+            margin-bottom: 6px;
+        }
+        .master-timeline .tl-node .tl-card .tl-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .master-timeline .tl-node .tl-card .tl-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            background: var(--bg);
+            padding: 2px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .master-timeline .tl-node .tl-card .tl-category {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .master-timeline .tl-node .tl-card .tl-emotion {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            color: var(--text-light);
+        }
+        .master-timeline .tl-node .tl-card .tl-desc {
+            margin-top: 8px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .master-timeline .tl-node .tl-card .tl-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .master-timeline .tl-node .tl-card .tl-meta span {
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        .master-timeline .tl-node .tl-card .tl-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .master-timeline .tl-node .tl-card .tl-actions button {
+            border: none;
+            background: var(--bg);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-light);
+        }
+        .master-timeline .tl-node .tl-card .tl-actions button:hover {
+            background: var(--primary-light);
+            color: var(--text);
+        }
+        .master-timeline .tl-node .tl-card .tl-actions .delete-btn:hover {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+        .master-timeline .tl-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .master-timeline .tl-empty .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* ── Other sections (Heatmap, Future, Chapters, Privacy) ── */
         .heatmap-container {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -804,7 +919,6 @@
             grid-column: 1 / -1;
         }
 
-        /* ── Future Map ── */
         .future-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -869,7 +983,6 @@
             grid-column: 1 / -1;
         }
 
-        /* ── Chapters ── */
         .chapters-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -918,7 +1031,6 @@
             border-radius: 12px;
         }
 
-        /* ── Privacy ── */
         .privacy-container {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -1121,7 +1233,6 @@
             color: var(--text);
         }
 
-        /* ── FAB ── */
         .fab {
             position: fixed;
             bottom: 28px;
@@ -1154,21 +1265,10 @@
                 right: 16px;
             }
         }
-
-        /* ── Utility ── */
-        .mt-8 {
-            margin-top: 8px;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .flex {
-            display: flex;
-        }
-        .flex-center {
-            align-items: center;
-            justify-content: center;
-        }
+        .mt-8 { margin-top: 8px; }
+        .text-center { text-align: center; }
+        .flex { display: flex; }
+        .flex-center { align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -1196,6 +1296,10 @@
                 <span class="tab-icon">📸</span>
                 <span class="tab-label">Feed</span>
             </button>
+            <button data-tab="master-timeline">
+                <span class="tab-icon">⏳</span>
+                <span class="tab-label">Timeline</span>
+            </button>
             <button data-tab="heatmap">
                 <span class="tab-icon">🔥</span>
                 <span class="tab-label">Heatmap</span>
@@ -1216,9 +1320,16 @@
 
         <!-- Sections -->
         <main>
-            <!-- Timeline / Feed -->
+            <!-- Feed (Instagram style) -->
             <section id="section-timeline" class="section active">
                 <div class="feed-container" id="feedContainer">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Master Timeline (classic vertical) -->
+            <section id="section-master-timeline" class="section">
+                <div class="master-timeline" id="masterTimelineContainer">
                     <!-- Rendered by JS -->
                 </div>
             </section>
@@ -1435,7 +1546,6 @@
                     data.memories.forEach(m => {
                         if (!m.steps) m.steps = [];
                         if (m.isFuture && !m.progress) m.progress = 0;
-                        // ensure photoData field exists
                         if (!m.photoData) m.photoData = null;
                     });
                     return;
@@ -1733,14 +1843,13 @@
             return map[emotion] || 'photo-bg-default';
         }
 
-        // ─── PHOTO UPLOAD HELPERS ────────────────────────────────────
+        // ─── PHOTO UPLOAD HELPERS (unchanged) ──────────────────────
 
         function handlePhotoUpload(memoryId, file) {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
-                // Compress image if too large (simple resize via canvas)
                 const img = new Image();
                 img.onload = function() {
                     const maxWidth = 800;
@@ -1779,7 +1888,7 @@
             }
         }
 
-        // ─── RENDER: INSTAGRAM-STYLE FEED ────────────────────────────
+        // ─── RENDER: FEED (unchanged) ─────────────────────────────────
 
         function renderFeed() {
             const container = document.getElementById('feedContainer');
@@ -1805,7 +1914,6 @@
                 const bgClass = getPhotoBgClass(m.emotion);
                 const hasPhoto = m.photoData && m.photoData.length > 100;
 
-                // Build details rows
                 let detailsHtml = '';
                 const details = [
                     { icon: '📝', label: 'Story', value: m.description || '—' },
@@ -1832,7 +1940,6 @@
                 const intensityDots = '●'.repeat(Math.min(m.emotionValue || 5, 10)) + '○'.repeat(Math.max(0, 10 - (m
                     .emotionValue || 5)));
 
-                // Photo frame content
                 let photoContent = '';
                 if (hasPhoto) {
                     photoContent = `<img src="${m.photoData}" alt="${m.title}" class="photo-img" loading="lazy" />`;
@@ -1882,9 +1989,7 @@
 
             container.innerHTML = html;
 
-            // ── Event listeners ──
-
-            // Click on card to expand/collapse
+            // Event listeners for feed
             container.querySelectorAll('.feed-card').forEach(card => {
                 const id = Number(card.dataset.id);
                 const body = card.querySelector('.card-body');
@@ -1900,13 +2005,11 @@
                     }
                 });
 
-                // Edit button
                 card.querySelector('.edit-btn')?.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openEditModal(id);
                 });
 
-                // Delete button
                 card.querySelector('.delete-btn')?.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (confirm('Delete this memory?')) {
@@ -1915,7 +2018,6 @@
                 });
             });
 
-            // ── Photo add/change button ──
             container.querySelectorAll('.photo-add-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1925,7 +2027,6 @@
                 });
             });
 
-            // ── File input ──
             container.querySelectorAll('.photo-file-input').forEach(input => {
                 input.addEventListener('change', function(e) {
                     const id = Number(this.dataset.id);
@@ -1937,7 +2038,6 @@
                 });
             });
 
-            // ── Remove photo button ──
             container.querySelectorAll('.photo-remove-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1948,7 +2048,7 @@
                 });
             });
 
-            // Auto-expand the first card
+            // Auto-expand first card
             const firstCard = container.querySelector('.feed-card');
             if (firstCard) {
                 setTimeout(() => {
@@ -1957,7 +2057,71 @@
             }
         }
 
-        // ─── RENDER: HEATMAP ──────────────────────────────────────────
+        // ─── RENDER: MASTER TIMELINE (new) ──────────────────────────
+
+        function renderMasterTimeline() {
+            const container = document.getElementById('masterTimelineContainer');
+            const past = sortByDate(getPastMemories()); // oldest first
+
+            if (past.length === 0) {
+                container.innerHTML = `
+              <div class="tl-empty">
+                <span class="empty-icon">⏳</span>
+                <h3>No memories yet</h3>
+                <p>Add your first memory to start your timeline.</p>
+              </div>
+            `;
+                return;
+            }
+
+            let html = '';
+            past.forEach((m) => {
+                const emoji = getEmotionEmoji(m.emotion);
+                const label = getEmotionLabel(m.emotion);
+                const catIcon = getCategoryIcon(m.category);
+                const year = getYear(m.date) || '?';
+                const dateDisplay = formatDate(m.date);
+
+                html += `
+              <div class="tl-node">
+                <div class="tl-card">
+                  <div class="tl-header">
+                    <span class="tl-title">${catIcon} ${m.title}</span>
+                    <span class="tl-date">${dateDisplay}</span>
+                    <span class="tl-category">${m.category}</span>
+                  </div>
+                  <div class="tl-emotion">${emoji} ${label} · Intensity ${m.emotionValue}/10</div>
+                  ${m.description ? `<div class="tl-desc">${m.description}</div>` : ''}
+                  <div class="tl-meta">
+                    ${m.location ? `<span>📍 ${m.location}</span>` : ''}
+                    ${m.people ? `<span>👤 ${m.people}</span>` : ''}
+                    ${m.lessons ? `<span>💡 ${m.lessons}</span>` : ''}
+                  </div>
+                  <div class="tl-actions">
+                    <button class="edit-btn" data-id="${m.id}">✏️ Edit</button>
+                    <button class="delete-btn" data-id="${m.id}">🗑️ Delete</button>
+                  </div>
+                </div>
+              </div>
+            `;
+            });
+
+            container.innerHTML = html;
+
+            // Event listeners for master timeline
+            container.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(Number(btn.dataset.id)));
+            });
+            container.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (confirm('Delete this memory?')) {
+                        deleteMemory(Number(btn.dataset.id));
+                    }
+                });
+            });
+        }
+
+        // ─── RENDER: HEATMAP (unchanged) ─────────────────────────────
 
         function renderHeatmap() {
             const grid = document.getElementById('heatmapGrid');
@@ -2012,7 +2176,7 @@
             grid.innerHTML = html;
         }
 
-        // ─── RENDER: FUTURE ───────────────────────────────────────────
+        // ─── RENDER: FUTURE (unchanged) ──────────────────────────────
 
         function renderFuture() {
             const container = document.getElementById('futureContainer');
@@ -2064,7 +2228,7 @@
             }));
         }
 
-        // ─── RENDER: CHAPTERS ────────────────────────────────────────
+        // ─── RENDER: CHAPTERS (unchanged) ────────────────────────────
 
         function renderChapters() {
             const container = document.getElementById('chaptersContainer');
@@ -2121,6 +2285,7 @@
 
         function renderAll() {
             renderFeed();
+            renderMasterTimeline();
             renderHeatmap();
             renderFuture();
             renderChapters();
@@ -2206,7 +2371,6 @@
             if (editId) {
                 const existing = getMemory(Number(editId));
                 if (existing) {
-                    // Preserve photoData when editing
                     formData.photoData = existing.photoData || null;
                     updateMemory(Number(editId), { ...existing, ...formData });
                 }
@@ -2231,7 +2395,9 @@
                 const tab = this.dataset.tab;
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                 document.getElementById(`section-${tab}`).classList.add('active');
+                // re-render feed or master timeline when switching to them (for fresh data)
                 if (tab === 'timeline') renderFeed();
+                if (tab === 'master-timeline') renderMasterTimeline();
             });
         });
 
@@ -2249,7 +2415,7 @@
 
         loadData();
         renderAll();
-        console.log('🗺️ Memory Map of Life — Photo upload enabled. Tap any photo frame to add/change a photo.');
+        console.log('🗺️ Memory Map of Life — Master timeline added. Swipe to see your life in chronological order.');
     </script>
 </body>
 </html>
