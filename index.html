@@ -1,363 +1,2255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bike Roar Rater - TFJS On-Device</title>
-    
-    <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <!-- Load Teachable Machine Audio Extension (Handles complex FFT/Spectrogram math automatically) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Memory Map of Life — PWA</title>
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#C68E5C" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
     <style>
+        /* ── Reset & Base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         :root {
-            --primary: #ff4500;
-            --secondary: #222;
-            --bg: #0a0a0a;
-            --text: #ffffff;
-            --accent: #00ff7f;
+            --primary: #C68E5C;
+            --primary-dark: #A8724A;
+            --primary-light: #E8D5B8;
+            --secondary: #2C3E50;
+            --bg: #FAF6F0;
+            --card-bg: #FFFFFF;
+            --text: #2D1F14;
+            --text-light: #6B5A4A;
+            --accent: #4A9B8E;
+            --accent-light: #B8D9D2;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+            --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.18);
+            --radius: 16px;
+            --radius-photo: 12px;
+            --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --feed-gap: 24px;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 8px;
+        }
+
+        /* ── App Layout ── */
+        #app {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 16px 16px 40px;
+        }
+
+        /* ── Header ── */
+        .app-header {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0 16px;
+            border-bottom: 2px solid var(--primary-light);
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .app-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .app-header .brand .icon {
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+        .app-header .brand h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary);
+            letter-spacing: -0.5px;
+        }
+        .app-header .brand h1 span {
+            color: var(--primary);
+        }
+        .app-header .stats {
+            display: flex;
+            gap: 14px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            background: var(--card-bg);
+            padding: 6px 16px;
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+        }
+        .app-header .stats span {
+            font-weight: 600;
+            color: var(--text);
+        }
+        .install-badge {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        .install-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(74, 155, 142, 0.4);
+        }
+        .install-badge.show {
+            display: inline-flex;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin: 16px 0 20px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            padding: 4px;
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 72px;
+            z-index: 49;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .tabs button {
+            flex: 1;
+            min-width: 56px;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 32px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            text-align: center;
+            gap: 4px;
+        }
+        .tabs button:hover {
+            background: var(--primary-light);
+            color: var(--text);
+        }
+        .tabs button.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(198, 142, 92, 0.35);
+        }
+        .tabs button .tab-icon {
+            font-size: 1.1rem;
+        }
+        .tabs button .tab-label {
+            font-size: 0.75rem;
         }
 
-        .container {
-            background-color: var(--secondary);
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(255, 69, 0, 0.15);
-            width: 90%;
-            max-width: 450px;
-            position: relative;
+        /* ── Sections ── */
+        .section {
+            display: none;
+            animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ════════════════════════════════════════════════════════════════
+                   INSTAGRAM-STYLE TIMELINE FEED
+                   ════════════════════════════════════════════════════════════════ */
+
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--feed-gap);
+            padding-bottom: 20px;
+        }
+
+        /* ── Feed Card ── */
+        .feed-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
             overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+        .feed-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
         }
 
-        /* Top highlight bar */
-        .container::before {
+        /* ── Photo Frame ── */
+        .feed-card .photo-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: linear-gradient(145deg, #f0ebe4, #e8e0d6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .feed-card .photo-frame .photo-emoji {
+            font-size: 6rem;
+            line-height: 1;
+            filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.10));
+            transition: var(--transition);
+            user-select: none;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .feed-card .photo-frame .photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+            z-index: 1;
+        }
+        .feed-card .photo-frame .photo-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.20) 100%);
+            opacity: 0.4;
+            transition: var(--transition);
+            z-index: 2;
+        }
+        .feed-card:hover .photo-frame .photo-overlay {
+            opacity: 0.6;
+        }
+        .feed-card:hover .photo-frame .photo-emoji {
+            transform: scale(1.04);
+        }
+
+        /* Photo frame decorative border */
+        .feed-card .photo-frame::after {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            inset: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 3;
         }
 
-        h1 { margin-top: 0; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
-        p { color: #aaaaaa; font-size: 0.95rem; margin-bottom: 25px; }
+        /* Category badge on photo */
+        .feed-card .photo-frame .photo-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 4;
+        }
 
-        #record-btn {
-            background: linear-gradient(145deg, #ff5722, #e63e00);
-            color: white;
+        /* ── Photo Add Button (overlay on emoji area) ── */
+        .feed-card .photo-frame .photo-add-btn {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 5;
+            cursor: pointer;
+            border-radius: inherit;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        .feed-card .photo-frame .photo-add-btn .add-icon {
+            font-size: 3rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: var(--transition);
+        }
+        .feed-card .photo-frame .photo-add-btn .add-label {
+            font-size: 0.85rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .feed-card .photo-frame .photo-add-btn:hover .add-icon {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .feed-card .photo-frame.has-photo .photo-add-btn {
+            opacity: 0;
+        }
+        .feed-card .photo-frame.has-photo:hover .photo-add-btn {
+            opacity: 1;
+        }
+        .feed-card .photo-frame:not(.has-photo) .photo-add-btn {
+            opacity: 1;
+        }
+        .feed-card .photo-frame:not(.has-photo) .photo-add-btn .add-label {
+            display: none;
+        }
+        .feed-card .photo-frame:not(.has-photo) .photo-add-btn .add-icon {
+            font-size: 2.4rem;
+            width: 56px;
+            height: 56px;
+        }
+        .feed-card .photo-frame:not(.has-photo) .photo-add-btn .add-icon span {
+            font-size: 2rem;
+        }
+        .feed-card .photo-frame .photo-remove-btn {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #fff;
             border: none;
             border-radius: 50%;
-            width: 90px; height: 90px;
-            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(255, 69, 0, 0.4);
-            margin: 10px auto 25px auto;
-            display: flex; align-items: center; justify-content: center;
+            transition: var(--transition);
+            z-index: 6;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .feed-card .photo-frame.has-photo .photo-remove-btn {
+            display: flex;
+        }
+        .feed-card .photo-frame .photo-remove-btn:hover {
+            background: rgba(200, 50, 50, 0.8);
+            transform: scale(1.1);
         }
 
-        #record-btn:active { transform: scale(0.9); }
-        
-        #record-btn.recording {
-            background: #dc143c;
-            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        /* Hidden file input */
+        .photo-file-input {
+            display: none;
         }
 
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(220, 20, 60, 0.7); }
-            70% { box-shadow: 0 0 0 25px rgba(220, 20, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 20, 60, 0); }
+        /* ── Card Body ── */
+        .feed-card .card-body {
+            padding: 16px 20px 18px;
+            transition: var(--transition);
         }
 
-        /* Progress Bar for the 5s capture */
-        .progress-container { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-bottom: 15px; display: none; overflow: hidden; }
-        .progress-bar { height: 100%; width: 0%; background: var(--primary); transition: width 0.1s linear; }
-
-        .results { display: none; animation: slideUp 0.5s ease-out forwards; border-top: 1px solid #333; padding-top: 20px; }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Emotional tagline */
+        .feed-card .emotional-tagline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .feed-card .emotional-tagline .tag-emotion {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 12px 2px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .feed-card .emotional-tagline .tag-emotion.happy {
+            background: #d4edda;
+            color: #155724;
+        }
+        .feed-card .emotional-tagline .tag-emotion.sad {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .feed-card .emotional-tagline .tag-emotion.stressed {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .feed-card .emotional-tagline .tag-emotion.peaceful {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .feed-card .emotional-tagline .tag-emotion.excited {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .feed-card .emotional-tagline .tag-emotion.grateful {
+            background: #e8d5b8;
+            color: #5d4a2a;
+        }
+        .feed-card .emotional-tagline .tag-emotion.hopeful {
+            background: #d5d0e8;
+            color: #3d2a5d;
+        }
+        .feed-card .emotional-tagline .tag-year {
+            color: var(--text-light);
+            font-weight: 400;
+            font-size: 0.85rem;
+        }
+        .feed-card .emotional-tagline .tag-title {
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.95rem;
+            flex: 1;
+            min-width: 60px;
+        }
+        .feed-card .emotional-tagline .tag-intensity {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
         }
 
-        .score-box { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .score-display { font-size: 4rem; font-weight: 900; color: var(--accent); margin: 0; line-height: 1; text-shadow: 0 0 15px rgba(0,255,127,0.3); }
-        .bonus-text { font-size: 0.8rem; color: #ffeb3b; margin-top: 5px; }
+        /* ── Expanded Details ── */
+        .feed-card .card-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s ease,
+                padding 0.4s ease;
+            opacity: 0;
+            padding: 0 20px;
+        }
+        .feed-card.expanded .card-details {
+            max-height: 600px;
+            opacity: 1;
+            padding: 0 20px 18px;
+        }
 
-        .bike-badge {
-            display: inline-block; padding: 6px 12px; border-radius: 6px;
-            background: #333; font-weight: bold; font-size: 1.1rem; margin: 10px 0;
+        .feed-card .card-details .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .feed-card .card-details .detail-row:last-child {
+            border-bottom: none;
+        }
+        .feed-card .card-details .detail-row .detail-icon {
+            font-size: 1.1rem;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .feed-card .card-details .detail-row .detail-label {
+            font-weight: 600;
+            color: var(--text);
+            min-width: 72px;
+            flex-shrink: 0;
+        }
+        .feed-card .card-details .detail-row .detail-value {
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+        .feed-card .card-details .detail-row .detail-value.lesson {
+            font-style: italic;
+            color: var(--secondary);
+        }
+
+        /* Expand indicator */
+        .feed-card .expand-hint {
+            display: flex;
+            justify-content: center;
+            padding: 6px 0 2px;
+            color: var(--text-light);
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+            transition: var(--transition);
+            gap: 6px;
+            align-items: center;
+        }
+        .feed-card .expand-hint .arrow {
+            display: inline-block;
+            transition: var(--transition);
+        }
+        .feed-card.expanded .expand-hint .arrow {
+            transform: rotate(180deg);
+        }
+        .feed-card:hover .expand-hint {
+            opacity: 1;
+        }
+
+        /* ── Card actions ── */
+        .feed-card .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+        .feed-card .card-actions button {
+            border: none;
+            background: var(--bg);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .feed-card .card-actions button:hover {
+            background: var(--primary-light);
+            color: var(--text);
+        }
+        .feed-card .card-actions .delete-btn:hover {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        /* ── Empty state ── */
+        .feed-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-light);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .feed-empty .empty-icon {
+            font-size: 4.5rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .feed-empty h3 {
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .feed-empty p {
+            font-size: 0.95rem;
+        }
+
+        /* ── Gradient backgrounds per emotion ── */
+        .photo-bg-happy {
+            background: linear-gradient(145deg, #fce4b8, #f8d5a3);
+        }
+        .photo-bg-sad {
+            background: linear-gradient(145deg, #d4c5c5, #c4b0b0);
+        }
+        .photo-bg-stressed {
+            background: linear-gradient(145deg, #f5d6b3, #ecc4a0);
+        }
+        .photo-bg-peaceful {
+            background: linear-gradient(145deg, #c8e6e0, #b0d4cc);
+        }
+        .photo-bg-excited {
+            background: linear-gradient(145deg, #b8d4f0, #9bc0e8);
+        }
+        .photo-bg-grateful {
+            background: linear-gradient(145deg, #e8d5b8, #dcc4a4);
+        }
+        .photo-bg-hopeful {
+            background: linear-gradient(145deg, #d5c8e8, #c4b4dc);
+        }
+        .photo-bg-default {
+            background: linear-gradient(145deg, #e8e0d6, #dcd2c8);
+        }
+
+        /* ── Responsive: grid on larger screens ── */
+        @media (min-width: 640px) {
+            .feed-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--feed-gap);
+            }
+            .feed-card .photo-frame {
+                aspect-ratio: 1 / 1;
+            }
+        }
+        @media (min-width: 1024px) {
+            .feed-container {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        /* ── Mobile adjustments ── */
+        @media (max-width: 480px) {
+            #app {
+                padding: 10px 10px 30px;
+            }
+            .app-header .brand h1 {
+                font-size: 1.1rem;
+            }
+            .app-header .stats {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+                gap: 10px;
+            }
+            .tabs {
+                top: 64px;
+                gap: 2px;
+                padding: 3px;
+            }
+            .tabs button {
+                padding: 8px 8px;
+                font-size: 0.7rem;
+                min-width: 40px;
+            }
+            .tabs button .tab-label {
+                display: none;
+            }
+            .feed-card .photo-frame .photo-emoji {
+                font-size: 4rem;
+            }
+            .feed-card .card-body {
+                padding: 12px 14px 14px;
+            }
+            .feed-card .emotional-tagline {
+                font-size: 0.85rem;
+                gap: 6px;
+            }
+            .feed-card .emotional-tagline .tag-title {
+                font-size: 0.85rem;
+                min-width: 40px;
+            }
+            .feed-card .card-details .detail-row {
+                font-size: 0.8rem;
+                padding: 6px 0;
+            }
+            .feed-card .card-details .detail-row .detail-label {
+                min-width: 56px;
+            }
+            .feed-container {
+                gap: 16px;
+            }
+            .feed-card .photo-frame .photo-add-btn .add-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 2rem;
+            }
+            .feed-card .photo-frame:not(.has-photo) .photo-add-btn .add-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.8rem;
+            }
+            .feed-card .photo-frame:not(.has-photo) .photo-add-btn .add-icon span {
+                font-size: 1.6rem;
+            }
+        }
+
+        /* ── Heatmap ── */
+        .heatmap-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            box-shadow: var(--shadow);
+        }
+        .heatmap-container h2 {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            color: var(--secondary);
+        }
+        .heatmap-container .sub {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .heatmap-item {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 12px 10px;
+            text-align: center;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        .heatmap-item:hover {
+            transform: scale(1.03);
+            border-color: var(--primary-light);
+        }
+        .heatmap-item .hm-year {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        .heatmap-item .hm-emotion {
+            font-size: 1.6rem;
+            margin: 2px 0;
+        }
+        .heatmap-item .hm-label {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .heatmap-item .hm-bar {
+            height: 4px;
+            border-radius: 4px;
+            margin-top: 6px;
+            background: var(--primary-light);
+            overflow: hidden;
+        }
+        .heatmap-item .hm-bar .hm-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        .heatmap-item .hm-bar .hm-fill.happy {
+            background: #28a745;
+        }
+        .heatmap-item .hm-bar .hm-fill.sad {
+            background: #dc3545;
+        }
+        .heatmap-item .hm-bar .hm-fill.stressed {
+            background: #ffc107;
+        }
+        .heatmap-item .hm-bar .hm-fill.peaceful {
+            background: #17a2b8;
+        }
+        .heatmap-item .hm-bar .hm-fill.excited {
+            background: #007bff;
+        }
+        .heatmap-item .hm-bar .hm-fill.grateful {
+            background: #c68e5c;
+        }
+        .heatmap-item .hm-bar .hm-fill.hopeful {
+            background: #6f42c1;
+        }
+        .heatmap-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            grid-column: 1 / -1;
+        }
+
+        /* ── Future Map ── */
+        .future-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+        .future-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--accent);
+            transition: var(--transition);
+        }
+        .future-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        .future-card .fc-icon {
+            font-size: 1.8rem;
+        }
+        .future-card .fc-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 2px 0 4px;
+        }
+        .future-card .fc-progress {
+            margin: 10px 0 8px;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .future-card .fc-progress .fc-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--accent);
+            transition: width 0.6s ease;
+        }
+        .future-card .fc-steps {
+            margin-top: 8px;
+            padding: 0;
+            list-style: none;
+        }
+        .future-card .fc-steps li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            padding: 3px 0;
+            border-bottom: 1px solid var(--bg);
+        }
+        .future-card .fc-steps li .step-done {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .future-empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-light);
+            grid-column: 1 / -1;
+        }
+
+        /* ── Chapters ── */
+        .chapters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .chapter-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
             border-left: 4px solid var(--primary);
+            transition: var(--transition);
+        }
+        .chapter-card:hover {
+            transform: translateX(4px);
+        }
+        .chapter-card .ch-number {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .chapter-card .ch-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 2px 0 4px;
+        }
+        .chapter-card .ch-desc {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+        .chapter-card .ch-events {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .chapter-card .ch-events span {
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 12px;
         }
 
-        .trash-talk {
-            font-size: 1.1rem; font-style: italic; background: rgba(255,255,255,0.05);
-            padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #444;
+        /* ── Privacy ── */
+        .privacy-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px 22px;
+            box-shadow: var(--shadow);
+        }
+        .privacy-container h2 {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .privacy-container .sub {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .privacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .privacy-card {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            border-left: 4px solid var(--accent);
+        }
+        .privacy-card .pc-icon {
+            font-size: 1.6rem;
+        }
+        .privacy-card .pc-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--secondary);
+            margin: 4px 0 2px;
+        }
+        .privacy-card .pc-desc {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .privacy-tip {
+            background: var(--primary-light);
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-top: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .privacy-tip .tip-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
         }
 
-        #status { color: #888; font-size: 0.9rem; font-weight: 500; height: 20px; }
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 30px;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.30);
+            animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px) scale(0.96);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        .modal .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+            line-height: 1;
+            padding: 4px;
+        }
+        .modal .modal-close:hover {
+            color: var(--text);
+            transform: rotate(90deg);
+        }
+        .modal h2 {
+            font-size: 1.4rem;
+            color: var(--secondary);
+            margin-bottom: 18px;
+            padding-right: 40px;
+        }
+        .modal .form-group {
+            margin-bottom: 14px;
+        }
+        .modal .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 3px;
+        }
+        .modal .form-group input,
+        .modal .form-group select,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--bg);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: var(--font);
+            transition: var(--transition);
+            background: var(--bg);
+            color: var(--text);
+        }
+        .modal .form-group input:focus,
+        .modal .form-group select:focus,
+        .modal .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(198, 142, 92, 0.15);
+        }
+        .modal .form-group textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+        .modal .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .modal .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .modal .form-actions button {
+            flex: 1;
+            min-width: 80px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .modal .form-actions .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(198, 142, 92, 0.3);
+        }
+        .modal .form-actions .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        .modal .form-actions .btn-secondary {
+            background: var(--bg);
+            color: var(--text-light);
+        }
+        .modal .form-actions .btn-secondary:hover {
+            background: var(--primary-light);
+            color: var(--text);
+        }
+
+        /* ── FAB ── */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            font-size: 1.8rem;
+            box-shadow: 0 8px 32px rgba(198, 142, 92, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow: 0 12px 48px rgba(198, 142, 92, 0.5);
+        }
+        @media (max-width: 480px) {
+            .fab {
+                width: 52px;
+                height: 52px;
+                font-size: 1.5rem;
+                bottom: 16px;
+                right: 16px;
+            }
+        }
+
+        /* ── Utility ── */
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-center {
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Roar Rater</h1>
-        <p>100% On-Device AI Architecture</p>
-        
-        <button id="record-btn">🎤</button>
-        
-        <div class="progress-container" id="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        
-        <div id="status">Tap mic to load AI and record</div>
-
-        <div class="results" id="results-card">
-            <div class="score-box">
-                <div style="font-size: 0.9rem; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Final Roar Score</div>
-                <div class="score-display" id="roar-score">0</div>
-                <div class="bonus-text" id="bonus-text">+0 Character Bonus</div>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🗺️</span>
+                <h1>Memory<span>Map</span></h1>
             </div>
-            
-            <div><span class="bike-badge" id="bike-class">Analyzing...</span></div>
-            <div class="trash-talk" id="trash-talk-text"></div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div class="stats" id="headerStats">
+                    <span>📌 <span id="statMemories">0</span></span>
+                    <span>🎯 <span id="statGoals">0</span></span>
+                    <span>📖 <span id="statChapters">0</span></span>
+                </div>
+                <button id="installBtn" class="install-badge">📲 Install</button>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <nav class="tabs" id="tabNav">
+            <button class="active" data-tab="timeline">
+                <span class="tab-icon">📸</span>
+                <span class="tab-label">Feed</span>
+            </button>
+            <button data-tab="heatmap">
+                <span class="tab-icon">🔥</span>
+                <span class="tab-label">Heatmap</span>
+            </button>
+            <button data-tab="future">
+                <span class="tab-icon">🚀</span>
+                <span class="tab-label">Future</span>
+            </button>
+            <button data-tab="chapters">
+                <span class="tab-icon">📖</span>
+                <span class="tab-label">Chapters</span>
+            </button>
+            <button data-tab="privacy">
+                <span class="tab-icon">🔒</span>
+                <span class="tab-label">Privacy</span>
+            </button>
+        </nav>
+
+        <!-- Sections -->
+        <main>
+            <!-- Timeline / Feed -->
+            <section id="section-timeline" class="section active">
+                <div class="feed-container" id="feedContainer">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Heatmap -->
+            <section id="section-heatmap" class="section">
+                <div class="heatmap-container" id="heatmapContainer">
+                    <h2>❤️‍🔥 Emotional Heatmap</h2>
+                    <p class="sub">See the emotional landscape of your life — patterns of joy, struggle, growth, and peace.</p>
+                    <div id="heatmapGrid" class="heatmap-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Future Map -->
+            <section id="section-future" class="section">
+                <div class="future-container" id="futureContainer">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Chapters -->
+            <section id="section-chapters" class="section">
+                <div class="chapters-container" id="chaptersContainer">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Privacy -->
+            <section id="section-privacy" class="section">
+                <div class="privacy-container">
+                    <h2>🔒 Privacy & Security</h2>
+                    <p class="sub">Your life story is yours alone. All data stays on your device.</p>
+                    <div class="privacy-grid">
+                        <div class="privacy-card">
+                            <div class="pc-icon">📁</div>
+                            <div class="pc-title">Local‑First Storage</div>
+                            <div class="pc-desc">All data stored <strong>only on your device</strong> via <code>localStorage</code>. No servers.</div>
+                        </div>
+                        <div class="privacy-card">
+                            <div class="pc-icon">🔐</div>
+                            <div class="pc-title">No Tracking</div>
+                            <div class="pc-desc"><strong>Zero</strong> cookies, analytics, or third‑party trackers.</div>
+                        </div>
+                        <div class="privacy-card">
+                            <div class="pc-icon">📴</div>
+                            <div class="pc-title">Offline First</div>
+                            <div class="pc-desc">Works offline once installed as PWA. Your data, always accessible.</div>
+                        </div>
+                        <div class="privacy-card">
+                            <div class="pc-icon">🧠</div>
+                            <div class="pc-title">Minimal Permissions</div>
+                            <div class="pc-desc"><strong>Zero</strong> permissions requested. You stay in control.</div>
+                        </div>
+                    </div>
+                    <div class="privacy-tip">
+                        <span class="tip-icon">🛡️</span>
+                        <div>
+                            <strong>Privacy Tips:</strong> Use a strong device passcode · Back up localStorage regularly · Use a privacy‑focused browser · Enable full‑disk encryption.
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;color:var(--text-light);font-size:0.8rem;border-top:1px solid var(--bg);padding-top:14px;">
+                        <strong>Data export:</strong> All data is in <code>localStorage</code> under key <code>memoryMapData</code>. Use DevTools → Application → Local Storage to copy.
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" id="fabAdd" title="Add Memory">➕</button>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <button class="modal-close" id="modalClose">✕</button>
+            <h2 id="modalTitle">Add Memory</h2>
+            <form id="memoryForm">
+                <input type="hidden" id="editId" value="" />
+
+                <div class="form-group">
+                    <label for="fTitle">Title *</label>
+                    <input type="text" id="fTitle" placeholder="e.g. First Government Job" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fDate">Date</label>
+                        <input type="date" id="fDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="fCategory">Category</label>
+                        <select id="fCategory">
+                            <option value="Childhood">🧒 Childhood</option>
+                            <option value="School">📚 School</option>
+                            <option value="College">🎓 College</option>
+                            <option value="Career">💼 Career</option>
+                            <option value="Relationships">❤️ Relationships</option>
+                            <option value="Family">👨‍👩‍👧‍👦 Family</option>
+                            <option value="Spiritual">🙏 Spiritual</option>
+                            <option value="Achievements">🏆 Achievements</option>
+                            <option value="Failures">💔 Failures</option>
+                            <option value="Other">✨ Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fEmotion">Emotion</label>
+                        <select id="fEmotion">
+                            <option value="happy">😊 Happy</option>
+                            <option value="sad">😢 Sad</option>
+                            <option value="stressed">🔥 Stressed</option>
+                            <option value="peaceful">🙏 Peaceful</option>
+                            <option value="excited">🤩 Excited</option>
+                            <option value="grateful">🙌 Grateful</option>
+                            <option value="hopeful">🌟 Hopeful</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fEmotionValue">Intensity (1–10)</label>
+                        <input type="number" id="fEmotionValue" min="1" max="10" value="7" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="fDescription">Description / Story</label>
+                    <textarea id="fDescription" placeholder="What happened? What did you learn?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="fLocation">Location</label>
+                    <input type="text" id="fLocation" placeholder="e.g. New Delhi" />
+                </div>
+
+                <div class="form-group">
+                    <label for="fPeople">People involved (comma separated)</label>
+                    <input type="text" id="fPeople" placeholder="e.g. Sarah, John" />
+                </div>
+
+                <div class="form-group">
+                    <label for="fLessons">Lessons learned</label>
+                    <input type="text" id="fLessons" placeholder="What did this teach you?" />
+                </div>
+
+                <div class="form-group" style="margin-top:6px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+                        <input type="checkbox" id="fIsFuture" />
+                        🚀 This is a future goal
+                    </label>
+                </div>
+
+                <div id="futureStepsGroup" style="display:none;">
+                    <div class="form-group">
+                        <label for="fGoalSteps">Goal Steps (one per line)</label>
+                        <textarea id="fGoalSteps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="fGoalProgress">Progress (%)</label>
+                        <input type="number" id="fGoalProgress" min="0" max="100" value="0" />
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">💾 Save</button>
+                    <button type="button" class="btn-secondary" id="formCancel">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        // REPLACE this URL with your own Teachable Machine Audio model link once you train it!
-        // Example: "https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/"
-        const URL = "https://teachablemachine.withgoogle.com/models/placeholder/"; 
-        
-        const RECORD_DURATION_MS = 5000; // 5 seconds
-        
-        // Trash Talk Engine (Tamil-English)
-        const trashTalkTemplates = {
-            low: [
-                "Enna ba, mixer grinder sound kekuthu! 😂",
-                "TVS 50 ah idhu? Needs more throat! 🛵",
-                "Sathame illa... Cycle otlama ba? 🚲"
-            ],
-            medium: [
-                "Not bad, aana innum konjam raw power thevai! 🏍️",
-                "Decent ah irukku, but where is the bass man? 🤔",
-                "KTM Duke vibes, pulling out okay! 🔥"
-            ],
-            high: [
-                "Verithanam! Pure muscle! 💥",
-                "Therikkavidalama! That's a beast roaring! 🦁",
-                "Kaantha kural! Royal Enfield thozha! 👑"
-            ]
-        };
-
-        // UI Elements
-        const recordBtn = document.getElementById('record-btn');
-        const statusText = document.getElementById('status');
-        const resultsCard = document.getElementById('results-card');
-        const roarScoreEl = document.getElementById('roar-score');
-        const bikeClassEl = document.getElementById('bike-class');
-        const trashTalkEl = document.getElementById('trash-talk-text');
-        const bonusTextEl = document.getElementById('bonus-text');
-        const progressContainer = document.getElementById('progress-container');
-        const progressBar = document.getElementById('progress-bar');
-
-        // State Variables
-        let isRecording = false;
-        let recognizer;
-        let audioContext;
-        let analyser;
-        let microphone;
-        let maxVolume = 0;
-        let detectedClass = "Unknown";
-        let maxConfidence = 0;
-        let progressInterval;
-
-        // --- 2. TFJS MODEL LOADING ---
-        async function createModel() {
-            const checkpointURL = URL + "model.json"; // model topology
-            const metadataURL = URL + "metadata.json"; // model metadata
-
-            try {
-                const recognizer = speechCommands.create(
-                    "BROWSER_FFT", // Fourier transform type
-                    undefined,     // speech commands vocabulary feature
-                    checkpointURL,
-                    metadataURL
-                );
-                // check that model and metadata are loaded
-                await recognizer.ensureModelLoaded();
-                return recognizer;
-            } catch (e) {
-                console.warn("Real TFJS model not found. Falling back to Mock Engine for UI testing.");
-                return null; // Return null to trigger the graceful fallback demo
-            }
+        // ─── PWA Service Worker ──────────────────────────────────────
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('✅ Service Worker registered'))
+                    .catch(() => console.warn('⚠️ SW registration failed'));
+            });
         }
 
-        // --- 3. CORE LOGIC ---
-        recordBtn.addEventListener('click', async () => {
-            if (isRecording) return;
-            
-            resultsCard.style.display = 'none';
-            statusText.innerText = 'Loading TFJS Model into memory...';
-            
-            // Lazy load model on first click
-            if (!recognizer && recognizer !== null) {
-                recognizer = await createModel();
+        // ─── Install Prompt ──────────────────────────────────────────
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.add('show');
+        });
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') installBtn.classList.remove('show');
+                deferredPrompt = null;
+            } else {
+                alert('Open in Chrome/Edge and tap the install icon in the address bar.');
             }
-
-            startPipeline();
         });
 
-        async function startPipeline() {
+        // ─── DATA LAYER ──────────────────────────────────────────────
+
+        const STORAGE_KEY = 'memoryMapData';
+        let data = { memories: [], nextId: 1 };
+
+        function loadData() {
             try {
-                // Request raw microphone access for decibel calculation
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                setupDecibelTracker(stream);
-
-                isRecording = true;
-                recordBtn.classList.add('recording');
-                progressContainer.style.display = 'block';
-                progressBar.style.width = '0%';
-                statusText.innerText = 'Listening... Rev the engine!';
-
-                // Start Progress Bar
-                let elapsed = 0;
-                progressInterval = setInterval(() => {
-                    elapsed += 100;
-                    progressBar.style.width = (elapsed / RECORD_DURATION_MS) * 100 + '%';
-                }, 100);
-
-                // If real TFJS model loaded, start classifying in real time
-                if (recognizer) {
-                    const classLabels = recognizer.wordLabels(); 
-                    recognizer.listen(result => {
-                        // Find highest confidence class during this window
-                        let scores = result.scores;
-                        let highestIndex = scores.indexOf(Math.max(...scores));
-                        
-                        if (scores[highestIndex] > maxConfidence) {
-                            maxConfidence = scores[highestIndex];
-                            detectedClass = classLabels[highestIndex];
-                        }
-                    }, {
-                        includeSpectrogram: false,
-                        probabilityThreshold: 0.75,
-                        invokeCallbackOnNoiseAndUnknown: true,
-                        overlapFactor: 0.50
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    data = parsed;
+                    data.memories.forEach(m => {
+                        if (!m.steps) m.steps = [];
+                        if (m.isFuture && !m.progress) m.progress = 0;
+                        // ensure photoData field exists
+                        if (!m.photoData) m.photoData = null;
                     });
+                    return;
+                }
+            } catch (_) {}
+            seedData();
+        }
+
+        function saveData() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+            updateStats();
+            renderAll();
+        }
+
+        function seedData() {
+            data.memories = [{
+                id: 1,
+                title: 'Born in the Mountains',
+                date: '1990-05-12',
+                category: 'Childhood',
+                emotion: 'happy',
+                emotionValue: 9,
+                description: 'Born in a small hill town surrounded by pine trees. The beginning of everything.',
+                location: 'Shimla, India',
+                people: 'Mom, Dad',
+                lessons: 'Life is a beautiful gift.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 2,
+                title: 'First Day of School',
+                date: '1995-06-01',
+                category: 'School',
+                emotion: 'excited',
+                emotionValue: 8,
+                description: 'Wearing a new uniform, carrying a bag bigger than me. Made my first friend that day.',
+                location: 'Shimla',
+                people: 'Rahul, Teacher Meera',
+                lessons: 'Curiosity opens doors.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 3,
+                title: 'Graduated College',
+                date: '2012-05-20',
+                category: 'College',
+                emotion: 'grateful',
+                emotionValue: 9,
+                description: 'Four years of late nights, lifelong friendships, and discovering who I am.',
+                location: 'Delhi University',
+                people: 'Aisha, Vikram, Prof. Sharma',
+                lessons: 'Growth happens outside your comfort zone.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 4,
+                title: 'First Government Job',
+                date: '2014-08-15',
+                category: 'Career',
+                emotion: 'excited',
+                emotionValue: 10,
+                description: 'Cracked the civil services exam after two years of preparation. A dream come true.',
+                location: 'New Delhi',
+                people: 'Family, colleagues',
+                lessons: 'Persistence pays off.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 5,
+                title: 'Married My Best Friend',
+                date: '2018-12-10',
+                category: 'Relationships',
+                emotion: 'happy',
+                emotionValue: 10,
+                description: 'A simple ceremony with close family. Started a new chapter of life together.',
+                location: 'Jaipur',
+                people: 'Priya, family, close friends',
+                lessons: 'Love is the greatest adventure.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 6,
+                title: 'Lost My Father',
+                date: '2020-03-18',
+                category: 'Family',
+                emotion: 'sad',
+                emotionValue: 9,
+                description: 'A profound loss that reshaped my perspective on life and time.',
+                location: 'Shimla',
+                people: 'Family',
+                lessons: 'Cherish every moment with loved ones.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 7,
+                title: 'Started Spiritual Practice',
+                date: '2021-01-01',
+                category: 'Spiritual',
+                emotion: 'peaceful',
+                emotionValue: 8,
+                description: 'Began daily meditation and yoga. Found a deeper sense of purpose.',
+                location: 'Rishikesh',
+                people: 'Guru ji',
+                lessons: 'Inner peace is the foundation of outer strength.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 8,
+                title: 'Built First App',
+                date: '2022-09-22',
+                category: 'Achievements',
+                emotion: 'excited',
+                emotionValue: 9,
+                description: 'Launched my first mobile app — a small utility that helped hundreds of people.',
+                location: 'Remote',
+                people: 'Co-developer Anjali',
+                lessons: 'Create value, and success follows.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 9,
+                title: 'Became Debt Free',
+                date: '2023-11-30',
+                category: 'Achievements',
+                emotion: 'grateful',
+                emotionValue: 10,
+                description: 'Cleared all loans and debts. Financial freedom at last.',
+                location: 'Home',
+                people: 'My wife',
+                lessons: 'Financial discipline is true freedom.',
+                isFuture: false,
+                steps: [],
+                progress: 0,
+                photoData: null
+            }, {
+                id: 10,
+                title: 'Buy a Home in the Hills',
+                date: '2026-06-01',
+                category: 'Other',
+                emotion: 'hopeful',
+                emotionValue: 9,
+                description: 'A cozy cottage with a garden, where I can write and watch the sunset.',
+                location: 'Himachal Pradesh',
+                people: 'Family',
+                lessons: 'Build a sanctuary for the soul.',
+                isFuture: true,
+                steps: ['Save ₹20L for down payment', 'Research hill towns', 'Visit properties', 'Finalize loan'],
+                progress: 30,
+                photoData: null
+            }, {
+                id: 11,
+                title: 'Build 100 Apps',
+                date: '2028-12-31',
+                category: 'Career',
+                emotion: 'excited',
+                emotionValue: 10,
+                description: 'A personal challenge to create 100 useful apps that make people\'s lives better.',
+                location: 'Anywhere',
+                people: 'Developer community',
+                lessons: 'Consistency compounds.',
+                isFuture: true,
+                steps: ['Build 1 app per month', 'Learn new frameworks', 'Open-source contributions',
+                    'Launch SaaS product'
+                ],
+                progress: 12,
+                photoData: null
+            }, {
+                id: 12,
+                title: 'Travel to 50 Countries',
+                date: '2030-01-01',
+                category: 'Other',
+                emotion: 'hopeful',
+                emotionValue: 9,
+                description: 'Explore diverse cultures, cuisines, and landscapes across the globe.',
+                location: 'Worldwide',
+                people: 'My wife, travel buddies',
+                lessons: 'The world is a classroom.',
+                isFuture: true,
+                steps: ['Visit 5 countries per year', 'Learn basic phrases in 10 languages',
+                    'Document each journey', 'Volunteer abroad'
+                ],
+                progress: 20,
+                photoData: null
+            }, {
+                id: 13,
+                title: 'Earn ₹10 Lakhs',
+                date: '2025-12-31',
+                category: 'Career',
+                emotion: 'hopeful',
+                emotionValue: 8,
+                description: 'Achieve a significant financial milestone through multiple income streams.',
+                location: 'India',
+                people: 'Mentors, network',
+                lessons: 'Wealth is a tool for freedom.',
+                isFuture: true,
+                steps: ['Increase freelance income', 'Invest in index funds', 'Create digital products',
+                    'Monetize blog'
+                ],
+                progress: 55,
+                photoData: null
+            }];
+            data.nextId = 14;
+            saveData();
+        }
+
+        // ─── HELPERS ──────────────────────────────────────────────────
+
+        function getPastMemories() { return data.memories.filter(m => !m.isFuture); }
+
+        function getFutureGoals() { return data.memories.filter(m => m.isFuture); }
+
+        function getMemory(id) { return data.memories.find(m => m.id === id); }
+
+        function addMemory(memory) {
+            memory.id = data.nextId++;
+            memory.photoData = memory.photoData || null;
+            data.memories.push(memory);
+            saveData();
+            return memory;
+        }
+
+        function updateMemory(id, updates) {
+            const idx = data.memories.findIndex(m => m.id === id);
+            if (idx === -1) return null;
+            data.memories[idx] = { ...data.memories[idx], ...updates };
+            saveData();
+            return data.memories[idx];
+        }
+
+        function deleteMemory(id) {
+            data.memories = data.memories.filter(m => m.id !== id);
+            saveData();
+        }
+
+        function getEmotionEmoji(emotion) {
+            const map = { happy: '😊', sad: '😢', stressed: '🔥', peaceful: '🙏', excited: '🤩', grateful: '🙌',
+                hopeful: '🌟' };
+            return map[emotion] || '😊';
+        }
+
+        function getEmotionLabel(emotion) {
+            const map = { happy: 'Happy', sad: 'Sad', stressed: 'Stressed', peaceful: 'Peaceful', excited: 'Excited',
+                grateful: 'Grateful', hopeful: 'Hopeful' };
+            return map[emotion] || emotion;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr + 'T00:00:00');
+            if (isNaN(d)) return dateStr;
+            return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function getYear(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr + 'T00:00:00');
+            if (isNaN(d)) return null;
+            return d.getFullYear();
+        }
+
+        function sortByDate(items) {
+            return [...items].sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return a.date.localeCompare(b.date);
+            });
+        }
+
+        function getCategoryIcon(cat) {
+            const map = { 'Childhood': '🧒', 'School': '📚', 'College': '🎓', 'Career': '💼', 'Relationships': '❤️',
+                'Family': '👨‍👩‍👧‍👦', 'Spiritual': '🙏', 'Achievements': '🏆', 'Failures': '💔', 'Other': '✨' };
+            return map[cat] || '📌';
+        }
+
+        function getPhotoBgClass(emotion) {
+            const map = { happy: 'photo-bg-happy', sad: 'photo-bg-sad', stressed: 'photo-bg-stressed',
+                peaceful: 'photo-bg-peaceful', excited: 'photo-bg-excited', grateful: 'photo-bg-grateful',
+                hopeful: 'photo-bg-hopeful' };
+            return map[emotion] || 'photo-bg-default';
+        }
+
+        // ─── PHOTO UPLOAD HELPERS ────────────────────────────────────
+
+        function handlePhotoUpload(memoryId, file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                // Compress image if too large (simple resize via canvas)
+                const img = new Image();
+                img.onload = function() {
+                    const maxWidth = 800;
+                    const maxHeight = 800;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressed = canvas.toDataURL('image/jpeg', 0.8);
+                    const memory = getMemory(memoryId);
+                    if (memory) {
+                        memory.photoData = compressed;
+                        saveData();
+                        renderAll();
+                    }
+                };
+                img.src = dataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto(memoryId) {
+            const memory = getMemory(memoryId);
+            if (memory) {
+                memory.photoData = null;
+                saveData();
+                renderAll();
+            }
+        }
+
+        // ─── RENDER: INSTAGRAM-STYLE FEED ────────────────────────────
+
+        function renderFeed() {
+            const container = document.getElementById('feedContainer');
+            const past = sortByDate(getPastMemories()).reverse();
+
+            if (past.length === 0) {
+                container.innerHTML = `
+              <div class="feed-empty">
+                <span class="empty-icon">🌱</span>
+                <h3>Start your story</h3>
+                <p>Add your first memory to begin your visual life journey.</p>
+              </div>
+            `;
+                return;
+            }
+
+            let html = '';
+            past.forEach((m) => {
+                const emoji = getEmotionEmoji(m.emotion);
+                const label = getEmotionLabel(m.emotion);
+                const catIcon = getCategoryIcon(m.category);
+                const year = getYear(m.date) || '—';
+                const bgClass = getPhotoBgClass(m.emotion);
+                const hasPhoto = m.photoData && m.photoData.length > 100;
+
+                // Build details rows
+                let detailsHtml = '';
+                const details = [
+                    { icon: '📝', label: 'Story', value: m.description || '—' },
+                    { icon: '📍', label: 'Location', value: m.location || '—' },
+                    { icon: '👤', label: 'People', value: m.people || '—' },
+                    { icon: '💡', label: 'Lesson', value: m.lessons || '—', cls: 'lesson' },
+                ];
+                details.forEach(d => {
+                    if (d.value && d.value !== '—') {
+                        detailsHtml += `
+                  <div class="detail-row">
+                    <span class="detail-icon">${d.icon}</span>
+                    <span class="detail-label">${d.label}</span>
+                    <span class="detail-value ${d.cls || ''}">${d.value}</span>
+                  </div>
+                `;
+                    }
+                });
+
+                if (!detailsHtml) {
+                    detailsHtml = `<div class="detail-row" style="color:var(--text-light);font-size:0.85rem;padding:6px 0;">No additional details shared.</div>`;
                 }
 
-                // Stop after 5 seconds
+                const intensityDots = '●'.repeat(Math.min(m.emotionValue || 5, 10)) + '○'.repeat(Math.max(0, 10 - (m
+                    .emotionValue || 5)));
+
+                // Photo frame content
+                let photoContent = '';
+                if (hasPhoto) {
+                    photoContent = `<img src="${m.photoData}" alt="${m.title}" class="photo-img" loading="lazy" />`;
+                } else {
+                    photoContent = `<span class="photo-emoji">${catIcon}</span>`;
+                }
+
+                const photoFrameClass = `photo-frame ${bgClass} ${hasPhoto ? 'has-photo' : ''}`;
+
+                html += `
+              <div class="feed-card" data-id="${m.id}">
+                <div class="${photoFrameClass}" data-id="${m.id}">
+                  ${photoContent}
+                  <div class="photo-overlay"></div>
+                  <span class="photo-badge">${catIcon} ${m.category}</span>
+                  <div class="photo-add-btn" data-id="${m.id}">
+                    <div class="add-icon">
+                      <span>${hasPhoto ? '📷' : '➕'}</span>
+                    </div>
+                    <span class="add-label">${hasPhoto ? 'Change Photo' : 'Add Photo'}</span>
+                  </div>
+                  <button class="photo-remove-btn" data-id="${m.id}" title="Remove photo">✕</button>
+                  <input type="file" class="photo-file-input" data-id="${m.id}" accept="image/*" />
+                </div>
+                <div class="card-body">
+                  <div class="emotional-tagline">
+                    <span class="tag-emotion ${m.emotion}">${emoji} ${label}</span>
+                    <span class="tag-year">${year}</span>
+                    <span class="tag-title">${m.title}</span>
+                    <span class="tag-intensity">⚡ ${intensityDots}</span>
+                  </div>
+                  <div class="expand-hint">
+                    <span>${m.description ? m.description.substring(0, 60) + (m.description.length > 60 ? '…' : '') : 'Tap to see more'}</span>
+                    <span class="arrow">▼</span>
+                  </div>
+                  <div class="card-details">
+                    ${detailsHtml}
+                    <div class="card-actions">
+                      <button class="edit-btn" data-id="${m.id}">✏️ Edit</button>
+                      <button class="delete-btn" data-id="${m.id}">🗑️ Delete</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+            });
+
+            container.innerHTML = html;
+
+            // ── Event listeners ──
+
+            // Click on card to expand/collapse
+            container.querySelectorAll('.feed-card').forEach(card => {
+                const id = Number(card.dataset.id);
+                const body = card.querySelector('.card-body');
+                body.addEventListener('click', (e) => {
+                    if (e.target.closest('button') || e.target.closest('.photo-frame')) return;
+                    const wasExpanded = card.classList.contains('expanded');
+                    container.querySelectorAll('.feed-card').forEach(c => c.classList.remove('expanded'));
+                    if (!wasExpanded) {
+                        card.classList.add('expanded');
+                        setTimeout(() => {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
+                });
+
+                // Edit button
+                card.querySelector('.edit-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openEditModal(id);
+                });
+
+                // Delete button
+                card.querySelector('.delete-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm('Delete this memory?')) {
+                        deleteMemory(id);
+                    }
+                });
+            });
+
+            // ── Photo add/change button ──
+            container.querySelectorAll('.photo-add-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = Number(btn.dataset.id);
+                    const fileInput = document.querySelector(`.photo-file-input[data-id="${id}"]`);
+                    if (fileInput) fileInput.click();
+                });
+            });
+
+            // ── File input ──
+            container.querySelectorAll('.photo-file-input').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const id = Number(this.dataset.id);
+                    const file = this.files[0];
+                    if (file) {
+                        handlePhotoUpload(id, file);
+                    }
+                    this.value = '';
+                });
+            });
+
+            // ── Remove photo button ──
+            container.querySelectorAll('.photo-remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = Number(btn.dataset.id);
+                    if (confirm('Remove this photo?')) {
+                        removePhoto(id);
+                    }
+                });
+            });
+
+            // Auto-expand the first card
+            const firstCard = container.querySelector('.feed-card');
+            if (firstCard) {
                 setTimeout(() => {
-                    stopPipeline(stream);
-                }, RECORD_DURATION_MS);
-
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = "Error: Microphone permission denied.";
+                    firstCard.classList.add('expanded');
+                }, 300);
             }
         }
 
-        function setupDecibelTracker(stream) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
-            microphone = audioContext.createMediaStreamSource(stream);
-            microphone.connect(analyser);
-            analyser.fftSize = 256;
-            
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            maxVolume = 0;
+        // ─── RENDER: HEATMAP ──────────────────────────────────────────
 
-            function track() {
-                if (!isRecording) return;
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) { sum += dataArray[i]; }
-                let avg = sum / bufferLength;
-                if (avg > maxVolume) maxVolume = avg; // Track peak volume
-                requestAnimationFrame(track);
+        function renderHeatmap() {
+            const grid = document.getElementById('heatmapGrid');
+            const past = getPastMemories();
+            if (past.length === 0) {
+                grid.innerHTML =
+                    `<div class="heatmap-empty" style="grid-column:1/-1;"><div style="font-size:3rem;">📊</div><p>Add memories to see your emotional heatmap.</p></div>`;
+                return;
             }
-            track();
+            const yearMap = {};
+            past.forEach(m => {
+                const y = getYear(m.date);
+                if (y === null) return;
+                if (!yearMap[y]) yearMap[y] = [];
+                yearMap[y].push(m);
+            });
+            const years = Object.keys(yearMap).sort();
+            if (years.length === 0) {
+                grid.innerHTML =
+                    `<div class="heatmap-empty" style="grid-column:1/-1;"><p>No dated memories to show.</p></div>`;
+                return;
+            }
+            let html = '';
+            years.forEach(y => {
+                const items = yearMap[y];
+                const emotionCount = {};
+                let totalVal = 0;
+                items.forEach(m => {
+                    emotionCount[m.emotion] = (emotionCount[m.emotion] || 0) + 1;
+                    totalVal += m.emotionValue || 5;
+                });
+                let dominant = 'happy';
+                let maxCount = 0;
+                for (const [e, c] of Object.entries(emotionCount)) {
+                    if (c > maxCount) { maxCount = c;
+                        dominant = e; }
+                }
+                const avgVal = Math.round(totalVal / items.length);
+                const emoji = getEmotionEmoji(dominant);
+                const label = getEmotionLabel(dominant);
+                const pct = Math.round((avgVal / 10) * 100);
+                html += `
+              <div class="heatmap-item">
+                <div class="hm-year">${y}</div>
+                <div class="hm-emotion">${emoji}</div>
+                <div class="hm-label">${label} · ${avgVal}/10</div>
+                <div class="hm-bar"><div class="hm-fill ${dominant}" style="width:${pct}%;"></div></div>
+                <div style="font-size:0.65rem;color:var(--text-light);margin-top:4px;">${items.length} memory${items.length>1?'s':''}</div>
+              </div>
+            `;
+            });
+            grid.innerHTML = html;
         }
 
-        function stopPipeline(stream) {
-            isRecording = false;
-            clearInterval(progressInterval);
-            recordBtn.classList.remove('recording');
-            progressContainer.style.display = 'none';
-            statusText.innerText = 'Processing completely on-device...';
+        // ─── RENDER: FUTURE ───────────────────────────────────────────
 
-            // Clean up Audio Context
-            stream.getTracks().forEach(track => track.stop());
-            if (audioContext && audioContext.state !== 'closed') {
-                audioContext.close();
+        function renderFuture() {
+            const container = document.getElementById('futureContainer');
+            const goals = getFutureGoals();
+            if (goals.length === 0) {
+                container.innerHTML =
+                    `<div class="future-empty"><div class="empty-icon">🚀</div><h3>No future goals</h3><p>Add a goal by checking "This is a future goal".</p></div>`;
+                return;
             }
-            if (recognizer) {
-                recognizer.stopListening();
-            }
-
-            calculateAndShowResults();
+            let html = '';
+            goals.forEach(g => {
+                const steps = g.steps || [];
+                const progress = g.progress || 0;
+                const emoji = getEmotionEmoji(g.emotion);
+                const catIcon = getCategoryIcon(g.category);
+                let stepsHtml = '';
+                if (steps.length) {
+                    stepsHtml = `<ul class="fc-steps">`;
+                    steps.forEach((s, idx) => {
+                        const done = idx < Math.round((progress / 100) * steps.length);
+                        stepsHtml +=
+                            `<li><span class="${done?'step-done':'step-pending'}">${done?'✅':'⏳'}</span> ${s}</li>`;
+                    });
+                    stepsHtml += `</ul>`;
+                }
+                html += `
+              <div class="future-card">
+                <div class="fc-icon">${catIcon}</div>
+                <div class="fc-title">${g.title}</div>
+                <div style="font-size:0.8rem;color:var(--text-light);margin:2px 0 6px;">${emoji} ${getEmotionLabel(g.emotion)} · ${formatDate(g.date)}</div>
+                ${g.description ? `<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">${g.description}</div>` : ''}
+                <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-light);">
+                  <span>Progress</span><span>${progress}%</span>
+                </div>
+                <div class="fc-progress"><div class="fc-fill" style="width:${progress}%;"></div></div>
+                ${stepsHtml}
+                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="edit-btn" data-id="${g.id}" style="border:none;background:var(--bg);padding:4px 14px;border-radius:20px;font-size:0.8rem;cursor:pointer;">✏️ Edit</button>
+                  <button class="delete-btn" data-id="${g.id}" style="border:none;background:var(--bg);padding:4px 14px;border-radius:20px;font-size:0.8rem;cursor:pointer;color:var(--text-light);">🗑️ Delete</button>
+                </div>
+              </div>
+            `;
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditModal(Number(b
+                .dataset.id))));
+            container.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => {
+                if (confirm('Delete this goal?')) deleteMemory(Number(b.dataset.id));
+            }));
         }
 
-        function calculateAndShowResults() {
-            // 1. Calculate Base Decibel Score (Mapping peak volume 0-255 to 0-85)
-            let baseScore = Math.min(85, Math.round((maxVolume / 255) * 85 * 1.5)); 
-            if (baseScore < 10) baseScore = Math.floor(Math.random() * 20) + 10; 
+        // ─── RENDER: CHAPTERS ────────────────────────────────────────
 
-            // 2. Handle AI Bike Classification & Character Bonus
-            let characterBonus = 0;
-
-            // If the user hasn't put in their real Teachable Machine URL yet, Mock the AI
-            if (!recognizer) {
-                if (baseScore > 75) { detectedClass = "Royal Enfield Classic 350"; maxConfidence = 0.92; }
-                else if (baseScore > 50) { detectedClass = "KTM Duke 390"; maxConfidence = 0.85; }
-                else { detectedClass = "TVS XL Super"; maxConfidence = 0.78; }
+        function renderChapters() {
+            const container = document.getElementById('chaptersContainer');
+            const past = sortByDate(getPastMemories());
+            if (past.length === 0) {
+                container.innerHTML =
+                    `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-light);"><div style="font-size:3rem;">📖</div><p>Add memories to generate your life chapters.</p></div>`;
+                return;
             }
-
-            // Assign Bonus based on AI Output (The "Character" Bonus from your architecture)
-            if (detectedClass.includes("Royal Enfield")) characterBonus = 15;
-            else if (detectedClass.includes("KTM")) characterBonus = 10;
-            else if (detectedClass.includes("Yamaha")) characterBonus = 8;
-            else characterBonus = 2; // Commuter bikes get low bonus
-
-            // 3. Final Roar Score Calculation
-            let finalScore = Math.min(100, baseScore + characterBonus);
-
-            // 4. Update UI
-            roarScoreEl.innerText = finalScore;
-            bonusTextEl.innerText = `+${characterBonus} Character Bonus (${detectedClass})`;
-            bikeClassEl.innerText = `${detectedClass} (Confidence: ${Math.round(maxConfidence * 100)}%)`;
-            
-            // 5. Fire Trash Talk Engine
-            let category = 'low';
-            if (finalScore > 75) category = 'high';
-            else if (finalScore > 40) category = 'medium';
-
-            const phrases = trashTalkTemplates[category];
-            trashTalkEl.innerText = phrases[Math.floor(Math.random() * phrases.length)];
-
-            resultsCard.style.display = 'block';
-            statusText.innerText = 'Tap mic to test another bike!';
-            
-            // Reset state for next run
-            maxConfidence = 0;
-            detectedClass = "Unknown";
+            const catMap = {};
+            past.forEach(m => { if (!catMap[m.category]) catMap[m.category] = [];
+                catMap[m.category].push(m); });
+            const used = Object.keys(catMap).sort();
+            const chapters = [];
+            let idx = 1;
+            used.forEach(cat => {
+                const items = catMap[cat];
+                const sorted = sortByDate(items);
+                const first = sorted[0];
+                const last = sorted[sorted.length - 1];
+                const yearRange = first && last ? `${getYear(first.date)||'?'} — ${getYear(last.date)||'?'}` : '';
+                const emotions = items.map(m => m.emotion);
+                const dominant = emotions.reduce((a, b, i, arr) => arr.filter(e => e === a).length >= arr.filter(e =>
+                    e === b).length ? a : b);
+                const emoji = getEmotionEmoji(dominant);
+                const label = getEmotionLabel(dominant);
+                const lessons = items.filter(m => m.lessons).map(m => m.lessons);
+                let desc = `${items.length} memory${items.length>1?'ies':'y'}`;
+                if (lessons.length) desc += ` · "${lessons[0]}"`;
+                if (yearRange) desc += ` · ${yearRange}`;
+                const titles = items.slice(0, 4).map(m => m.title);
+                const more = items.length > 4 ? ` +${items.length-4} more` : '';
+                chapters.push({ number: idx++, title: cat, icon: getCategoryIcon(cat), emoji, emotion: label,
+                    desc, events: titles, more, count: items.length });
+            });
+            if (chapters.length === 0) { container.innerHTML =
+                    `<div style="grid-column:1/-1;text-align:center;padding:40px;">No chapters yet.</div>`; return; }
+            let html = '';
+            chapters.forEach(ch => {
+                html += `
+              <div class="chapter-card">
+                <div class="ch-number">Ch.${ch.number} · ${ch.emoji} ${ch.emotion}</div>
+                <div class="ch-title">${ch.icon} ${ch.title}</div>
+                <div class="ch-desc">${ch.desc}</div>
+                <div class="ch-events">${ch.events.map(t=>`<span>${t}</span>`).join('')}${ch.more?`<span style="background:var(--primary-light);">${ch.more}</span>`:''}</div>
+                <div style="font-size:0.7rem;color:var(--text-light);margin-top:6px;">${ch.count} events</div>
+              </div>
+            `;
+            });
+            container.innerHTML = html;
         }
+
+        // ─── RENDER ALL ──────────────────────────────────────────────
+
+        function renderAll() {
+            renderFeed();
+            renderHeatmap();
+            renderFuture();
+            renderChapters();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('statMemories').textContent = getPastMemories().length;
+            document.getElementById('statGoals').textContent = getFutureGoals().length;
+            const ch = document.querySelectorAll('.chapter-card').length || Math.ceil(getPastMemories().length / 3) || 0;
+            document.getElementById('statChapters').textContent = ch > 0 ? ch : '—';
+        }
+
+        // ─── MODAL ─────────────────────────────────────────────────────
+
+        function openModal(title, dataObj) {
+            const overlay = document.getElementById('modalOverlay');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('editId').value = dataObj ? dataObj.id : '';
+            document.getElementById('fTitle').value = dataObj ? dataObj.title : '';
+            document.getElementById('fDate').value = dataObj ? dataObj.date : '';
+            document.getElementById('fCategory').value = dataObj ? dataObj.category : 'Childhood';
+            document.getElementById('fEmotion').value = dataObj ? dataObj.emotion : 'happy';
+            document.getElementById('fEmotionValue').value = dataObj ? dataObj.emotionValue : 7;
+            document.getElementById('fDescription').value = dataObj ? dataObj.description : '';
+            document.getElementById('fLocation').value = dataObj ? dataObj.location : '';
+            document.getElementById('fPeople').value = dataObj ? dataObj.people : '';
+            document.getElementById('fLessons').value = dataObj ? dataObj.lessons : '';
+            const isFuture = dataObj ? dataObj.isFuture : false;
+            document.getElementById('fIsFuture').checked = isFuture;
+            document.getElementById('futureStepsGroup').style.display = isFuture ? 'block' : 'none';
+            if (isFuture && dataObj) {
+                document.getElementById('fGoalSteps').value = (dataObj.steps || []).join('\n');
+                document.getElementById('fGoalProgress').value = dataObj.progress || 0;
+            } else {
+                document.getElementById('fGoalSteps').value = '';
+                document.getElementById('fGoalProgress').value = 0;
+            }
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function openAddModal() { openModal('➕ Add New Memory', null); }
+
+        function openEditModal(id) {
+            const m = getMemory(id);
+            if (!m) return;
+            openModal(`✏️ Edit ${m.isFuture ? 'Goal' : 'Memory'}`, m);
+        }
+
+        // ─── FORM ─────────────────────────────────────────────────────
+
+        document.getElementById('memoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const isFuture = document.getElementById('fIsFuture').checked;
+            const formData = {
+                title: document.getElementById('fTitle').value.trim(),
+                date: document.getElementById('fDate').value,
+                category: document.getElementById('fCategory').value,
+                emotion: document.getElementById('fEmotion').value,
+                emotionValue: parseInt(document.getElementById('fEmotionValue').value) || 5,
+                description: document.getElementById('fDescription').value.trim(),
+                location: document.getElementById('fLocation').value.trim(),
+                people: document.getElementById('fPeople').value.trim(),
+                lessons: document.getElementById('fLessons').value.trim(),
+                isFuture: isFuture,
+            };
+            if (isFuture) {
+                const stepsRaw = document.getElementById('fGoalSteps').value;
+                formData.steps = stepsRaw.split('\n').filter(s => s.trim() !== '');
+                formData.progress = parseInt(document.getElementById('fGoalProgress').value) || 0;
+            } else {
+                formData.steps = [];
+                formData.progress = 0;
+            }
+            if (!formData.title) { alert('Please enter a title.'); return; }
+            if (editId) {
+                const existing = getMemory(Number(editId));
+                if (existing) {
+                    // Preserve photoData when editing
+                    formData.photoData = existing.photoData || null;
+                    updateMemory(Number(editId), { ...existing, ...formData });
+                }
+            } else {
+                formData.photoData = null;
+                addMemory(formData);
+            }
+            closeModal();
+            renderAll();
+        });
+
+        document.getElementById('fIsFuture').addEventListener('change', function() {
+            document.getElementById('futureStepsGroup').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // ─── EVENT LISTENERS ─────────────────────────────────────────
+
+        document.querySelectorAll('#tabNav button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#tabNav button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(`section-${tab}`).classList.add('active');
+                if (tab === 'timeline') renderFeed();
+            });
+        });
+
+        document.getElementById('fabAdd').addEventListener('click', openAddModal);
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('formCancel').addEventListener('click', closeModal);
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ─── INIT ─────────────────────────────────────────────────────
+
+        loadData();
+        renderAll();
+        console.log('🗺️ Memory Map of Life — Photo upload enabled. Tap any photo frame to add/change a photo.');
     </script>
 </body>
 </html>
